@@ -18,7 +18,7 @@ function generateHierarchy(hierarchy, current) {
 
     // Display files.
     hierarchy.files.forEach(function(file) {
-        current += '<li><i class="fa fa-file" aria-hidden="true"></i> <a href="' + encodeURI(file.filepath) + '">' + file.filename + '</a>' + '</li>';
+        current += '<li><i class="fa fa-file-pdf" aria-hidden="true"></i> <a href="' + encodeURI(file.filepath) + '">' + file.filename + '</a>' + '</li>';
     });
 
     // Recursively display folders.
@@ -41,11 +41,26 @@ function fetchHierarchy(sha) {
     request.send();
     request.onload = function() {
             var hierarchy = generateHierarchy(JSON.parse(request.responseText), '');
-            document.body.innerHTML += '<ul id="root-list">' + hierarchy + '</ul>';
-    }
+            document.body.innerHTML += '<ul>' + hierarchy + '</ul>';
+    };
+}
 
-    // Display the latest SHA (debug only?).
-    document.body.innerHTML += '<div id="sha"><i class="fa fa-info-circle" aria-hidden="true"></i> resources@' + sha + '</div><br>';
+/**
+ * Display the latest SHA and rate limit information (debug only?).
+ * 
+ * @param {String} sha SHA of the GitHub being used.
+ */
+function displayInfo(sha) {
+    var rateLimit = new XMLHttpRequest();
+    rateLimit.open('GET', 'https://api.github.com/rate_limit');
+    rateLimit.send();
+    rateLimit.onload = function() {
+        var rateLimitJSON = JSON.parse(rateLimit.responseText);
+        document.body.innerHTML += '<div id="sha"><i class="fa fa-info-circle fa-fw" aria-hidden="true"></i> resources@' + sha + '<br>'
+            + '<i class="fa fa-exclamation-triangle fa-fw" aria-hidden="true"></i> l=' + rateLimitJSON.resources.core.remaining + ';r=' + (rateLimitJSON.resources.core.reset - Math.round(+new Date() / 1000)) + '</div><br>';
+
+        fetchHierarchy(sha);
+    }
 }
 
 /**
@@ -56,6 +71,6 @@ function fetchHierarchy(sha) {
     request.open('GET', 'https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/commits/master');
     request.send();
     request.onload = function() {
-        fetchHierarchy(JSON.parse(request.responseText).sha);
+        displayInfo(JSON.parse(request.responseText).sha);
     };
 })();
