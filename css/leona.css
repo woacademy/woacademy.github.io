@@ -29,9 +29,5 @@ ul {
     font-family: 'Roboto Mono', monospace;
 
     padding: 16px;
-    width: max-content;
 }
 
-#root-list {
-    padding-inline-start: 0px;
-}
