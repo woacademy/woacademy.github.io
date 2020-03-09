@@ -71,6 +71,6 @@ function displayInfo(sha) {
     request.open('GET', 'https://api.github.com/repos/' + GITHUB_USER + '/' + GITHUB_REPO + '/commits/master');
     request.send();
     request.onload = function() {
-        displayInfo(JSON.parse(request.responseText).sha);
+        displayInfo(request.status == 200 ? JSON.parse(request.responseText).sha : 'master');
     };
 })();
